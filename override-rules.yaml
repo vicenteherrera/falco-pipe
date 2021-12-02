@@ -1,0 +1,26 @@
+
+falco:
+  # The location of the rules file(s). This can contain one or more paths to
+  # separate rules files.
+  rulesFile:
+    - /etc/falco/override-rules/falco_rules.yaml
+    - /etc/falco/falco_rules.local.yaml
+    - /etc/falco/override-rules/k8s_audit_rules.yaml
+    - /etc/falco/rules.d
+
+# Add extra volumes to Falco daemonset
+extraVolumes:
+- name: main-falco-rules-volume
+  configMap:
+    name: main-falco-rules
+    optional: true
+    items:
+      - key: falco_rules.yaml
+        path: falco_rules.yaml
+      - key: k8s_audit_rules.yaml
+        path: k8s_audit_rules.yaml
+
+# Add extra volumeMounts to Falco container in Falco daemonset
+extraVolumeMounts:
+- mountPath: /etc/falco/override-rules
+  name: main-falco-rules-volume
