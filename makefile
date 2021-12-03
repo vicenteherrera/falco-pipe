@@ -32,11 +32,19 @@ deploy-falco: create-configmap
 create-rule-update:
 	scripts/create_rule_update_k8s.sh
 
-update-falco: create-rule-update
+# Update resources
+
+update-falco: create-rule-update 
 	helm upgrade falco falcosecurity/falco -n falco \
   		-f tmp/rule_update_falco.yaml \
   		--wait --timeout 40s \
 		--set=pullPolicy=IfNotPresent
+
+update-configmap:
+	kubectl create configmap main-falco-rules -n falco \
+	--from-file=falco/rules/falco_rules.yaml \
+	--from-file=falco/rules/k8s_audit_rules.yaml \
+	--dry-run=client -o yaml | kubectl replace -f -
 
 # Interactive utils
 
@@ -60,5 +68,7 @@ delete-minikube:
 # Combined commands
 
 launch: validate-local deploy-falco wait-falco logs-falco
+
+update: update-configmap update-falco
 
 destroy: remove-falco
