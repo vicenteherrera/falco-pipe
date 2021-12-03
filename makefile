@@ -2,7 +2,7 @@
 
 # This targets reads default Falco rules files in the order stablished by default in falco.yaml
 # and adds a list of those in customized/*.yaml
-validate-falco-rules:
+validate-local:
 	docker run --rm -it \
 		-v "$$(pwd)/falco/rules":/falco/rules \
 		-v "$$(pwd)/customized":/customized \
@@ -27,9 +27,7 @@ deploy-falco: create-configmap
 	helm repo add falcosecurity https://falcosecurity.github.io/charts
 	helm repo update
 	helm install falco falcosecurity/falco -n falco \
-		-f override-rules.yaml
-
-# Update resources
+		-f helm-rules-values.yaml
 
 create-rule-update:
 	scripts/create_rule_update_k8s.sh
@@ -61,6 +59,6 @@ delete-minikube:
 
 # Combined commands
 
-launch: deploy-falco wait-falco logs-falco
+launch: validate-local deploy-falco wait-falco logs-falco
 
 destroy: remove-falco
